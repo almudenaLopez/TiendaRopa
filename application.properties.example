@@ -1,0 +1,17 @@
+# Copia este fichero como application.properties y ajusta los valores locales.
+# No guardes contrasenas reales en Git.
+
+database.engine=H2
+connection.mode=DRIVER_MANAGER
+simulation.mode=NORMAL
+
+mysql.url=jdbc:mysql://localhost:3306/unidad2
+mysql.user=root
+mysql.password=
+
+h2.url=jdbc:h2:file:./data/unidad2;DB_CLOSE_DELAY=-1
+h2.user=sa
+h2.password=
+
+pool.maximumPoolSize=5
+pool.connectionTimeout=30000
