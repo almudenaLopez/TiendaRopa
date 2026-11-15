@@ -8,10 +8,11 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Scanner;
 
-/** Interfaz de consola sencilla para consultar el catálogo. */
+/** Menú principal de la tienda. */
 public final class CatalogConsole {
     private final CatalogRepository catalogRepository = new CatalogRepository();
     private final OrderConsole orderConsole = new OrderConsole();
+    private final StoreOperationsConsole operationsConsole = new StoreOperationsConsole();
 
     public void run(Connection connection, SimulationMode simulationMode) throws SQLException {
         Scanner scanner = new Scanner(System.in);
@@ -21,12 +22,24 @@ public final class CatalogConsole {
             System.out.println("\n=== TiendaRopa ===");
             System.out.println("1. Buscar prendas en el catálogo");
             System.out.println("2. Crear un pedido");
+            System.out.println("3. Cancelar un pedido");
+            System.out.println("4. Reponer artículos");
+            System.out.println("5. Consultar artículos con stock bajo");
+            System.out.println("6. Consultar unidades vendidas por producto");
+            System.out.println("7. Recomendar artículos a un cliente");
+            System.out.println("8. Consultar pedidos de un cliente");
             System.out.println("0. Salir");
             System.out.print("Opción: ");
 
             switch (scanner.nextLine().trim()) {
                 case "1" -> searchCatalog(scanner, connection);
                 case "2" -> orderConsole.createOrder(scanner, connection, simulationMode);
+                case "3" -> operationsConsole.cancelOrder(scanner, connection);
+                case "4" -> operationsConsole.replenishStock(scanner, connection);
+                case "5" -> operationsConsole.showLowStock(connection);
+                case "6" -> operationsConsole.showSales(connection);
+                case "7" -> operationsConsole.showRecommendations(scanner, connection);
+                case "8" -> operationsConsole.showCustomerOrders(scanner, connection);
                 case "0" -> running = false;
                 default -> System.out.println("Opción no válida.");
             }
