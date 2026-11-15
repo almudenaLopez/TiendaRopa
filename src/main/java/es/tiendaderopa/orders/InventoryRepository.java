@@ -11,6 +11,29 @@ import java.time.Instant;
 /** Bloqueo de artículos, control de existencias y trazabilidad de las ventas. */
 public final class InventoryRepository {
 
+    public void restoreAfterCancellation(Connection connection, long orderId, long articleId, int quantity)
+            throws SQLException {
+        String updateSql = "UPDATE articulo SET stock_actual = stock_actual + ? WHERE id = ?";
+        try (PreparedStatement statement = connection.prepareStatement(updateSql)) {
+            statement.setInt(1, quantity);
+            statement.setLong(2, articleId);
+            if (statement.executeUpdate() != 1) {
+                throw new SQLException("No existe el artículo " + articleId + " al cancelar el pedido");
+            }
+        }
+
+        String movementSql = "INSERT INTO movimiento_stock "
+                + "(articulo_id, pedido_id, tipo, cantidad, fecha) "
+                + "VALUES (?, ?, 'DEVOLUCION_CANCELACION', ?, ?)";
+        try (PreparedStatement statement = connection.prepareStatement(movementSql)) {
+            statement.setLong(1, articleId);
+            statement.setLong(2, orderId);
+            statement.setInt(3, quantity);
+            statement.setTimestamp(4, Timestamp.from(Instant.now()));
+            statement.executeUpdate();
+        }
+    }
+
     public ArticleForOrder lockArticleForOrder(Connection connection, long articleId)
             throws SQLException, OrderException {
         String sql = "SELECT a.stock_actual, p.precio "
