@@ -14,14 +14,14 @@ public final class CatalogRepository {
                    p.nombre AS product_name,
                    p.descripcion AS description,
                    p.precio AS price,
-                   v.id AS variant_id,
-                   v.talla AS size,
-                   v.color AS color,
-                   v.sku AS sku,
-                   v.stock_actual AS stock,
-                   v.stock_minimo AS minimum_stock
+                   a.id AS article_id,
+                   a.talla AS size,
+                   a.color AS color,
+                   a.sku AS sku,
+                   a.stock_actual AS stock,
+                   a.stock_minimo AS minimum_stock
             FROM producto p
-            JOIN variante v ON v.producto_id = p.id
+            JOIN articulo a ON a.producto_id = p.id
             WHERE p.activo = TRUE
             """;
 
@@ -42,17 +42,17 @@ public final class CatalogRepository {
             parameters.add(filter.category().trim());
         }
         if (hasText(filter.size())) {
-            sql.append(" AND LOWER(v.talla) = LOWER(?)");
+            sql.append(" AND LOWER(a.talla) = LOWER(?)");
             parameters.add(filter.size().trim());
         }
         if (hasText(filter.color())) {
-            sql.append(" AND LOWER(v.color) = LOWER(?)");
+            sql.append(" AND LOWER(a.color) = LOWER(?)");
             parameters.add(filter.color().trim());
         }
         if (filter.onlyAvailable()) {
-            sql.append(" AND v.stock_actual > 0");
+            sql.append(" AND a.stock_actual > 0");
         }
-        sql.append(" ORDER BY p.nombre, v.talla, v.color");
+        sql.append(" ORDER BY p.nombre, a.talla, a.color");
 
         List<CatalogItem> items = new ArrayList<>();
         try (PreparedStatement statement = connection.prepareStatement(sql.toString())) {
@@ -66,7 +66,7 @@ public final class CatalogRepository {
                             results.getString("product_name"),
                             results.getString("description"),
                             results.getBigDecimal("price"),
-                            results.getLong("variant_id"),
+                            results.getLong("article_id"),
                             results.getString("size"),
                             results.getString("color"),
                             results.getString("sku"),

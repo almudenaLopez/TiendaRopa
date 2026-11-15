@@ -1,7 +1,7 @@
 package es.tiendaderopa.orders;
 
 import es.tiendaderopa.config.SimulationMode;
-import es.tiendaderopa.orders.InventoryRepository.VariantForOrder;
+import es.tiendaderopa.orders.InventoryRepository.ArticleForOrder;
 import es.tiendaderopa.orders.OrderRepository.PricedOrderLine;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -36,32 +36,32 @@ public final class OrderService {
             orderRepository.requireExistingClient(connection, request.clientId());
 
             List<OrderLineRequest> sortedLines = request.lines().stream()
-                    .sorted(Comparator.comparingLong(OrderLineRequest::variantId))
+                    .sorted(Comparator.comparingLong(OrderLineRequest::articleId))
                     .toList();
-            Map<Long, VariantForOrder> lockedVariants = new HashMap<>();
+            Map<Long, ArticleForOrder> lockedArticles = new HashMap<>();
             BigDecimal total = BigDecimal.ZERO.setScale(2);
             int unitCount = 0;
             for (OrderLineRequest line : sortedLines) {
-                VariantForOrder variant = inventoryRepository.lockVariantForOrder(connection, line.variantId());
-                if (variant.currentStock() < line.quantity()) {
-                    throw new OrderException("Stock insuficiente para la variante " + line.variantId()
-                            + ": disponible " + variant.currentStock() + ", solicitado " + line.quantity());
+                ArticleForOrder article = inventoryRepository.lockArticleForOrder(connection, line.articleId());
+                if (article.currentStock() < line.quantity()) {
+                    throw new OrderException("Stock insuficiente para el artículo " + line.articleId()
+                            + ": disponible " + article.currentStock() + ", solicitado " + line.quantity());
                 }
-                lockedVariants.put(line.variantId(), variant);
-                total = total.add(variant.unitPrice().multiply(BigDecimal.valueOf(line.quantity())));
+                lockedArticles.put(line.articleId(), article);
+                total = total.add(article.unitPrice().multiply(BigDecimal.valueOf(line.quantity())));
                 unitCount += line.quantity();
             }
             total = total.setScale(2, RoundingMode.HALF_UP);
 
             long orderId = orderRepository.insertOrder(connection, request.clientId(), total);
             List<PricedOrderLine> pricedLines = sortedLines.stream()
-                    .map(line -> new PricedOrderLine(line.variantId(), line.quantity(),
-                            lockedVariants.get(line.variantId()).unitPrice()))
+                    .map(line -> new PricedOrderLine(line.articleId(), line.quantity(),
+                            lockedArticles.get(line.articleId()).unitPrice()))
                     .toList();
             orderRepository.insertLines(connection, orderId, pricedLines);
 
             for (OrderLineRequest line : sortedLines) {
-                inventoryRepository.sell(connection, orderId, lockedVariants.get(line.variantId()), line.quantity());
+                inventoryRepository.sell(connection, orderId, lockedArticles.get(line.articleId()), line.quantity());
             }
             paymentRepository.insertApprovedPayment(connection, orderId, total);
 

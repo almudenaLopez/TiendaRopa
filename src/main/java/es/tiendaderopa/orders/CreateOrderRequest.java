@@ -12,8 +12,8 @@ public record CreateOrderRequest(long clientId, List<OrderLineRequest> lines) {
             throw new IllegalArgumentException("El pedido debe tener al menos una línea");
         }
         lines = List.copyOf(lines);
-        if (lines.stream().map(OrderLineRequest::variantId).distinct().count() != lines.size()) {
-            throw new IllegalArgumentException("No se puede repetir una variante en el mismo pedido");
+        if (lines.stream().map(OrderLineRequest::articleId).distinct().count() != lines.size()) {
+            throw new IllegalArgumentException("No se puede repetir un artículo en el mismo pedido");
         }
     }
 }

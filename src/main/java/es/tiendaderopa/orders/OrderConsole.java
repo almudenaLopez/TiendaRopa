@@ -27,17 +27,17 @@ public final class OrderConsole {
             throws SQLException, OrderException {
         showClients(connection);
         long clientId = readPositiveLong(scanner, "Identificador del cliente: ");
-        showVariants(connection);
+        showArticles(connection);
 
         List<OrderLineRequest> lines = new ArrayList<>();
         while (true) {
-            long variantId = readNonNegativeLong(scanner,
-                    "Identificador de variante (0 para terminar): ");
-            if (variantId == 0) {
+            long articleId = readNonNegativeLong(scanner,
+                    "Identificador de artículo (0 para terminar): ");
+            if (articleId == 0) {
                 break;
             }
             int quantity = readPositiveInt(scanner, "Cantidad: ");
-            lines.add(new OrderLineRequest(variantId, quantity));
+            lines.add(new OrderLineRequest(articleId, quantity));
         }
 
         CreateOrderRequest request = new CreateOrderRequest(clientId, lines);
@@ -58,15 +58,15 @@ public final class OrderConsole {
         }
     }
 
-    private static void showVariants(Connection connection) throws SQLException {
-        String sql = "SELECT v.id, p.nombre, v.talla, v.color, v.sku, p.precio, v.stock_actual "
-                + "FROM variante v JOIN producto p ON p.id = v.producto_id "
-                + "WHERE p.activo = TRUE ORDER BY p.nombre, v.talla, v.color";
-        System.out.println("\nVariantes disponibles:");
+    private static void showArticles(Connection connection) throws SQLException {
+        String sql = "SELECT a.id, p.nombre, a.talla, a.color, a.sku, p.precio, a.stock_actual "
+                + "FROM articulo a JOIN producto p ON p.id = a.producto_id "
+                + "WHERE p.activo = TRUE ORDER BY p.nombre, a.talla, a.color";
+        System.out.println("\nArtículos disponibles:");
         try (PreparedStatement statement = connection.prepareStatement(sql);
              ResultSet results = statement.executeQuery()) {
             while (results.next()) {
-                System.out.printf("- variante %d | %s | talla %s | %s | %s | %s € | stock %d%n",
+                System.out.printf("- artículo %d | %s | talla %s | %s | %s | %s € | stock %d%n",
                         results.getLong("id"), results.getString("nombre"), results.getString("talla"),
                         results.getString("color"), results.getString("sku"),
                         results.getBigDecimal("precio"), results.getInt("stock_actual"));

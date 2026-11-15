@@ -49,7 +49,7 @@ public final class CatalogConsole {
             System.out.println("No se encontraron prendas con esos filtros.");
             return;
         }
-        System.out.printf("Se encontraron %d variantes:%n", items.size());
+        System.out.printf("Se encontraron %d artículos:%n", items.size());
         for (CatalogItem item : items) {
             System.out.printf("- %s | talla %s | %s | %s | %s € | stock: %d (mínimo %d)%n",
                     item.productName(), item.size(), item.color(), item.sku(), item.price(),

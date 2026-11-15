@@ -45,12 +45,12 @@ public final class OrderRepository {
 
     public void insertLines(Connection connection, long orderId, List<PricedOrderLine> lines)
             throws SQLException {
-        String sql = "INSERT INTO detalle_pedido (pedido_id, variante_id, cantidad, precio_unitario) "
+        String sql = "INSERT INTO detalle_pedido (pedido_id, articulo_id, cantidad, precio_unitario) "
                 + "VALUES (?, ?, ?, ?)";
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             for (PricedOrderLine line : lines) {
                 statement.setLong(1, orderId);
-                statement.setLong(2, line.variantId());
+                statement.setLong(2, line.articleId());
                 statement.setInt(3, line.quantity());
                 statement.setBigDecimal(4, line.unitPrice());
                 statement.addBatch();
@@ -59,6 +59,6 @@ public final class OrderRepository {
         }
     }
 
-    public record PricedOrderLine(long variantId, int quantity, BigDecimal unitPrice) {
+    public record PricedOrderLine(long articleId, int quantity, BigDecimal unitPrice) {
     }
 }

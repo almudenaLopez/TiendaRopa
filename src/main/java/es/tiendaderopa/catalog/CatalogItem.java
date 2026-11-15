@@ -2,13 +2,13 @@ package es.tiendaderopa.catalog;
 
 import java.math.BigDecimal;
 
-/** Una fila del catálogo: una prenda junto con una de sus variantes. */
+/** Una fila del catálogo: una prenda en una talla y color concretos. */
 public record CatalogItem(
         long productId,
         String productName,
         String description,
         BigDecimal price,
-        long variantId,
+        long articleId,
         String size,
         String color,
         String sku,

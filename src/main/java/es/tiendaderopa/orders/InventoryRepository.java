@@ -8,44 +8,44 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.Instant;
 
-/** Bloqueo de variantes, control de existencias y trazabilidad de las ventas. */
+/** Bloqueo de artículos, control de existencias y trazabilidad de las ventas. */
 public final class InventoryRepository {
 
-    public VariantForOrder lockVariantForOrder(Connection connection, long variantId)
+    public ArticleForOrder lockArticleForOrder(Connection connection, long articleId)
             throws SQLException, OrderException {
-        String sql = "SELECT v.stock_actual, p.precio "
-                + "FROM variante v JOIN producto p ON p.id = v.producto_id "
-                + "WHERE v.id = ? AND p.activo = TRUE FOR UPDATE";
+        String sql = "SELECT a.stock_actual, p.precio "
+                + "FROM articulo a JOIN producto p ON p.id = a.producto_id "
+                + "WHERE a.id = ? AND p.activo = TRUE FOR UPDATE";
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setLong(1, variantId);
+            statement.setLong(1, articleId);
             try (ResultSet results = statement.executeQuery()) {
                 if (!results.next()) {
-                    throw new OrderException("No existe una variante activa con identificador " + variantId);
+                    throw new OrderException("No existe un artículo activo con identificador " + articleId);
                 }
-                return new VariantForOrder(variantId,
+                return new ArticleForOrder(articleId,
                         results.getInt("stock_actual"), results.getBigDecimal("precio"));
             }
         }
     }
 
-    public void sell(Connection connection, long orderId, VariantForOrder variant, int quantity)
+    public void sell(Connection connection, long orderId, ArticleForOrder article, int quantity)
             throws SQLException, OrderException {
-        String updateSql = "UPDATE variante SET stock_actual = stock_actual - ? "
+        String updateSql = "UPDATE articulo SET stock_actual = stock_actual - ? "
                 + "WHERE id = ? AND stock_actual >= ?";
         try (PreparedStatement statement = connection.prepareStatement(updateSql)) {
             statement.setInt(1, quantity);
-            statement.setLong(2, variant.variantId());
+            statement.setLong(2, article.articleId());
             statement.setInt(3, quantity);
             if (statement.executeUpdate() != 1) {
-                throw new OrderException("No hay existencias suficientes para la variante "
-                        + variant.variantId());
+                throw new OrderException("No hay existencias suficientes para el artículo "
+                        + article.articleId());
             }
         }
 
         String movementSql = "INSERT INTO movimiento_stock "
-                + "(variante_id, pedido_id, tipo, cantidad, fecha) VALUES (?, ?, 'VENTA', ?, ?)";
+                + "(articulo_id, pedido_id, tipo, cantidad, fecha) VALUES (?, ?, 'VENTA', ?, ?)";
         try (PreparedStatement statement = connection.prepareStatement(movementSql)) {
-            statement.setLong(1, variant.variantId());
+            statement.setLong(1, article.articleId());
             statement.setLong(2, orderId);
             statement.setInt(3, quantity);
             statement.setTimestamp(4, Timestamp.from(Instant.now()));
@@ -53,6 +53,6 @@ public final class InventoryRepository {
         }
     }
 
-    public record VariantForOrder(long variantId, int currentStock, BigDecimal unitPrice) {
+    public record ArticleForOrder(long articleId, int currentStock, BigDecimal unitPrice) {
     }
 }
