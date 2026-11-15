@@ -36,7 +36,7 @@ public final class Main {
                         config.databaseEngine(), config.connectionMode());
                 System.out.printf("Base de datos preparada: %s (%s, %s)%n",
                         databaseName, config.databaseEngine(), config.connectionMode());
-                new CatalogConsole().run(connection);
+                new CatalogConsole().run(connection, config.simulationMode());
             }
         } catch (Exception exception) {
             LOGGER.error("No se pudo iniciar la aplicación", exception);

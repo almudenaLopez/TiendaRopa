@@ -1,5 +1,8 @@
 package es.tiendaderopa.catalog;
 
+import es.tiendaderopa.config.SimulationMode;
+import es.tiendaderopa.orders.OrderConsole;
+
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
@@ -8,19 +11,22 @@ import java.util.Scanner;
 /** Interfaz de consola sencilla para consultar el catálogo. */
 public final class CatalogConsole {
     private final CatalogRepository catalogRepository = new CatalogRepository();
+    private final OrderConsole orderConsole = new OrderConsole();
 
-    public void run(Connection connection) throws SQLException {
+    public void run(Connection connection, SimulationMode simulationMode) throws SQLException {
         Scanner scanner = new Scanner(System.in);
         boolean running = true;
 
         while (running) {
             System.out.println("\n=== TiendaRopa ===");
             System.out.println("1. Buscar prendas en el catálogo");
+            System.out.println("2. Crear un pedido");
             System.out.println("0. Salir");
             System.out.print("Opción: ");
 
             switch (scanner.nextLine().trim()) {
                 case "1" -> searchCatalog(scanner, connection);
+                case "2" -> orderConsole.createOrder(scanner, connection, simulationMode);
                 case "0" -> running = false;
                 default -> System.out.println("Opción no válida.");
             }
